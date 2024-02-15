@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+    <title>Memory Timeline</title>
+    <style>
+        body {
+            background-color: pink;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .title {
+            font-size: 50px;
+            color: red;
+            margin: 50px 0;
+        }
+        .content-button, .yes-no-button, .continue-button {
+            font-size: 20px;
+            padding: 10px 20px;
+            margin: 5px 20px;
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .content-button:hover, .yes-no-button:hover, .continue-button:hover {
+            background-color: darkred;
+        }
+        .continue-button.disabled {
+            background-color: grey;
+            color: darkgrey;
+            pointer-events: none;
+        }
+        .hidden {
+            display: none;
+        }
+        .memory-images-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .memory-image img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+        .timeline {
+            width: 100%;
+            height: 10px;
+            background-color: deeppink;
+            position: relative;
+            margin-top: 40px;
+        }
+        .timeline-dot {
+            height: 20px;
+            width: 20px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+            top: -5px;
+        }
+        .timeline-text {
+            position: absolute;
+            top: 25px;
+            color: #000;
+            font-size: 14px;
+        }
+        img.standard {
+            margin-top: 20px;
+            width: 500px;
+            height: auto;
+        }
+        @keyframes fadeInLeftToRight {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .memory-image {
+            opacity: 0;
+            animation-fill-mode: forwards; /* Keeps the image visible after the animation */
+        }
+        #memory-timeline {
+            opacity: 0; /* Start with the timeline hidden */
+            transition: opacity 0.5s ease-in-out; /* Smooth transition for the opacity */
+        }
+        @keyframes snow-drop {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+
+        .snowflake {
+            position: fixed;
+            top: -2em;
+            opacity: 0;
+            font-size: 24px; /* Adjust size as needed */
+            animation-name: snow-drop;
+            animation-iteration-count: infinite;
+            animation-timing-function: linear;
+        }
+    </style>
+</head>
+<body>
+
+<div id="main-content">
+    <h1 class="title">VALENTINES DAY!</h1>
+    <img src="images/capybaravalentine1.jpg">
+    <p></p>
+    <button class="content-button" onclick="startGame()">Start</button>
+</div>
+
+<div id="content" class="hidden">
+    <div id="choice-section">
+        <h1></h1>
+        <img src="images/capybaravalentine.png">
+        <p> </p>
+        <button class="yes-no-button" onclick="handleChoice('yes')">Yes</button>
+        <button class="yes-no-button" id="noButton" onclick="handleChoice('no')">No</button>
+    </div>
+
+    <div id="yes-response" class="hidden">
+        <h1 class="title">Hooray!</h1>
+        <img src="images/heart.PNG" alt="Heart" class="standard" width="1980" height="1040">
+        <p>Please enjoy a timeline of my favourite moments of us, a scuffed product of sacrificed sleep right before midterms <3.</p>
+        <p>Would love to have spent more time on this :/</p>
+        <button class="content-button" onclick="showMemoryTimeline()">Go -></button>
+        <p>P.S. I wanted to do this in Chinese but by the time I figured out how to display it properly I had already written the entire thing. 就选练英语了！</p>
+    </div>
+
+    <div id="feedback-section" class="hidden">
+        <h1 class="title">??? no try again</h1>
+        <img src="images/sad.png" alt="Incorrect Image" class="standard">
+        <div>
+            <input type="checkbox" id="agreeCheckbox" onchange="toggleContinueButton()">
+            <label for="agreeCheckbox">I promise that I will NOT choose the wrong answer next time</label>
+            <br>
+            <button class="continue-button disabled" id="continueButton" onclick="showChoices()">Try Again</button>
+        </div>
+    </div>
+
+    <!-- Memory Timeline Section -->
+    <div id="memory-timeline" class="hidden">
+        <h1 class="title" id="memory-title">Our Memories</h1>
+        <div class="memory-images-container" id="memory-images-container">
+            <!-- Images will be inserted here dynamically -->
+        </div>
+        <p id="memory-description">Description of a beautiful memory...</p>
+        <!-- Button moved above the timeline -->
+        <button class="content-button" onclick="nextMemory()">Next</button>
+        <div class="timeline" id="memory-timeline-dots">
+            <!-- Dots and dates will be added dynamically -->
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let currentMemoryIndex = 0;
+    const memories = [
+        {
+            title: 'Our First Date? Maybe?',
+            images: [
+                {src: 'images/1.1.jpg', width: '302px', height: "403"},
+                {src: 'images/1.2.jpg', width: '302px', height: "403"},
+                {src: 'images/1.3.jpg', width: '403px', height: "302"}
+            ],
+            description: 'Thought this would be the end of us before we even started but it thankfully ended up being the beginning. Also my Stitch clears yours nothing you can do about it. And dont forget about our first kiss <3',
+            date: 'August 30, 2023',
+            position: '10%',
+            emoji: "❤️"
+        },
+        {
+            title: 'Premarital Hand Holding ???',
+            images: [
+                {src: 'images/2.1.jpg', width: '302px', height: "403"},
+                {src: 'images/2.2.jpg', width: '302px', height: "403"},
+                {src: 'images/2.3.jpg', width: '302px', height: "403"}
+            ],
+            description: 'After many many library study dates this is the night we finally held hands! Commemorated by these lovely seesaw and city pictures.',
+            date: 'September 24, 2023',
+            position: '20%',
+            emoji: "✋"
+        },
+        {
+            title: 'Fall',
+            images: [
+                {src: 'images/3.1.jpg', width: '302px', height: "403"},
+                {src: 'images/3.2.jpg', width: '302px', height: "403"},
+                {src: 'images/3.3.jpg', width: '302px', height: "403"},
+                {src: 'images/3.4.jpg', width: '302px', height: "403"}
+            ],
+            description: 'Beautiful fall day (and girl).',
+            date: 'October 22, 2023',
+            position: '30%',
+            emoji: "🍂"
+        },
+        {
+            title: 'Halloween Pt.1: The Pumpkin',
+            images: [
+                {src: 'images/4.1.jpg', width: '302px', height: "403"},
+                {src: 'images/4.2.jpg', width: '302px', height: "403"},
+                {src: 'images/4.3.jpg', width: '302px', height: "403"},
+                {src: 'images/4.4.jpg', width: '403px', height: "302"},
+                {src: 'images/4.5.jpg', width: '403px', height: "302"},
+                {src: 'images/4.6.jpg', width: '302px', height: "403"}
+            ],
+            description: 'We absolutely cooked with this pumpkin. Nothing more to say.',
+            date: 'October 29, 2023',
+            position: '40%',
+            emoji: "🎃"
+        },
+        {
+            title: 'Halloween Pt. 2: The Costumes',
+            images: [
+                {src: 'images/5.1.jpg', width: '302px', height: "403"},
+                {src: 'images/5.2.jpg', width: '302px', height: "403"},
+                {src: 'images/5.3.jpg', width: '302px', height: "403"},
+                {src: 'images/5.4.jpg', width: '302px', height: "403"},
+                {src: 'images/5.5.jpg', width: '302px', height: "403"}
+            ],
+            description: 'Probably the most iconic day of our relationship so far. Winnie and Eeyore was an absolutely amazing idea (I wonder who thought of it!). Between the costumes, candy, and photoshoots, theres no other way I would have rather spent halloween than with you.',
+            date: 'October 31, 2023',
+            position: '50%',
+            emoji: "🍯"
+        },
+        {
+            title: 'Movies, Octy and Us',
+            images: [
+                {src: 'images/6.1.jpg', width: '302px', height: "403"},
+                {src: 'images/6.2.jpg', width: '302px', height: "403"}
+            ],
+            description: 'I am broke',
+            date: 'November 26, 2023',
+            position: '60%',
+            emoji: "🐙"
+        },
+        {
+            title: 'Christmas Light Show!',
+            images: [
+                {src: 'images/7.1.jpg', width: '302px', height: "403"},
+                {src: 'images/7.2.jpg', width: '302px', height: "403"}
+            ],
+            description: 'The decorations may have been bright but they were nothing compared to the light in your eyes (with rizz)',
+            date: 'December 20, 2023',
+            position: '70%',
+            emoji: "🎄"
+        },
+        {
+            title: 'Anniversary !!!',
+            images: [
+                {src: 'images/8.1.jpg', width: '302px', height: "403"}
+            ],
+            description: 'No pictures of the occasion but it had to be included. This is the day we became "official"! So happy 2 months and 14 days :)',
+            date: 'December 31, 2023',
+            position: '80%',
+            emoji: "🎉"
+        },
+        {
+            title: 'My Favourite Pictures of You',
+            images: [
+                {src: 'images/9.1.jpg', width: '302px', height: "403"},
+                {src: 'images/9.2.PNG', width: '403px', height: "302"},
+                {src: 'images/9.3.jpg', width: '302px', height: "403"},
+                {src: 'images/9.4.jpg', width: '302px', height: "403"},
+                {src: 'images/9.5.PNG', width: '403px', height: "302"},
+            ],
+            description: 'I think you are very hot',
+            date: 'I love you ;)',
+            position: '90%',
+            emoji: "🔥"
+        },
+        {
+            title: 'The End (for now)',
+            images: [
+                {src: 'images/capybaralove.jpg', width: '302px', height: "403"}
+            ],
+            description: 'Even though we werent able to spend valentines day together, I still look forward to making more memories with you!!! (and maybe adding them here??) Happy Valentines day I love you!!!!! (Reload to restart)',
+            date: 'February 14, 2023',
+            position: '95%',
+            emoji: "💗"
+        },
+    ];
+
+    function updateMemoryContent() {
+        const memory = memories[currentMemoryIndex];
+        document.getElementById('memory-title').textContent = memory.title;
+        const container = document.getElementById('memory-images-container');
+        container.innerHTML = ''; // Clear existing images
+
+        memory.images.forEach((image, index) => {
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'memory-image';
+            const imgElement = document.createElement('img');
+            imgElement.src = image.src;
+            imgElement.style.width = image.width;
+            imgElement.style.height = image.height;
+            imageContainer.appendChild(imgElement);
+            container.appendChild(imageContainer);
+
+            // Apply animation with JavaScript
+            const animationDuration = 1; // Duration in seconds, adjust as needed
+            const animationDelay = index * 0.5; // Delay in seconds, creates a staggered effect
+            imageContainer.style.animation = `fadeInLeftToRight ${animationDuration}s ${animationDelay}s forwards`;
+        });
+
+
+        document.getElementById('memory-description').textContent = memory.description;
+
+        // Update timeline
+        const timeline = document.getElementById('memory-timeline-dots');
+        timeline.innerHTML = '';
+        const dot = document.createElement('div');
+        dot.className = 'timeline-dot';
+        dot.style.left = memory.position;
+        timeline.appendChild(dot);
+        const text = document.createElement('span');
+        text.className = 'timeline-text';
+        text.textContent = memory.date;
+        text.style.left = memory.position;
+        timeline.appendChild(text);
+    }
+
+    function showMemoryTimeline() {
+        document.getElementById('yes-response').classList.add('hidden');
+        const memoryTimeline = document.getElementById('memory-timeline');
+        memoryTimeline.classList.remove('hidden');
+        memoryTimeline.style.opacity = 0; // Ensure it starts hidden
+        setTimeout(() => {
+            updateMemoryContent(); // Update content while hidden
+            memoryTimeline.style.opacity = 1; // Fade in after updating
+        }, 10); // Short delay before updating and fading in
+    }
+
+    function nextMemory() {
+        const memoryTimeline = document.getElementById('memory-timeline');
+        memoryTimeline.style.opacity = 0; // Fade out current content
+        setTimeout(() => {
+            currentMemoryIndex = (currentMemoryIndex + 1) % memories.length;
+            updateMemoryContent(); // Update content while hidden
+            memoryTimeline.style.opacity = 1; // Fade in new content
+            updateSnowflakes(); // Ensure this is called after content update
+        }, 500); // Match delay to CSS transition duration
+    }
+
+    function handleChoice(choice) {
+        if (choice === 'yes') {
+            document.getElementById('choice-section').classList.add('hidden');
+            document.getElementById('yes-response').classList.remove('hidden');
+        } else {
+            document.getElementById('choice-section').classList.add('hidden');
+            document.getElementById('feedback-section').classList.remove('hidden');
+            document.getElementById('noButton').classList.add('no-button-disabled');
+        }
+    }
+
+    function startGame() {
+        document.getElementById('main-content').classList.add('hidden');
+        document.getElementById('content').classList.remove('hidden');
+        showChoices();
+    }
+
+    function showChoices() {
+        document.getElementById('choice-section').classList.remove('hidden');
+        document.getElementById('feedback-section').classList.add('hidden');
+        document.getElementById('yes-response').classList.add('hidden');
+        document.getElementById('memory-timeline').classList.add('hidden');
+        document.getElementById('agreeCheckbox').checked = false;
+        toggleContinueButton();
+    }
+
+    function toggleContinueButton() {
+        var checkbox = document.getElementById('agreeCheckbox');
+        var continueButton = document.getElementById('continueButton');
+        if(checkbox.checked) {
+            continueButton.classList.remove('disabled');
+            continueButton.disabled = false;
+        } else {
+            continueButton.classList.add('disabled');
+            continueButton.disabled = true;
+        }
+    }
+    function createSnowflakes(emoji, count = 100) {
+        const snowContainer = document.createElement("div");
+        snowContainer.className = "snow-container";
+        document.body.appendChild(snowContainer);
+
+        for (let i = 0; i < count; i++) {
+            const snowflake = document.createElement("div");
+            snowflake.className = "snowflake";
+            snowflake.innerText = emoji; // Set the emoji for the snowflake
+            snowflake.style.left = `${Math.random() * 100}%`;
+            snowflake.style.fontSize = `${Math.random() * 24 + 10}px`; // Random size between 10px and 34px
+            snowflake.style.animationDuration = `${Math.random() * 5 + 5}s`; // Random duration between 5 and 10 seconds
+            snowflake.style.animationDelay = `${Math.random() * 5}s`; // Random delay up to 5 seconds
+            snowContainer.appendChild(snowflake);
+        }
+    }
+
+    // Example usage with dynamic emoji update based on the current memory index
+    function updateSnowflakes() {
+        // Remove existing snowflakes
+        const existingContainer = document.querySelector(".snow-container");
+        if (existingContainer) existingContainer.remove();
+
+        // Create new snowflakes with the emoji from the current memory
+        const currentEmoji = memories[currentMemoryIndex].emoji;
+        createSnowflakes(currentEmoji, 20);
+    }
+
+    // Extend the existing functions to include snowflake updates
+    const originalShowMemoryTimeline = showMemoryTimeline;
+    showMemoryTimeline = function() {
+        originalShowMemoryTimeline.apply(this, arguments);
+        updateSnowflakes();
+    };
+
+    const originalNextMemory = nextMemory;
+    nextMemory = function() {
+        originalNextMemory.apply(this, arguments);
+        updateSnowflakes();
+    };
+
+    // Initialize snowflakes for the first memory
+    document.addEventListener("DOMContentLoaded", function() {
+        updateSnowflakes(); // Initial call to display snowflakes
+    });
+
+</script>
+</body>
+</html>
